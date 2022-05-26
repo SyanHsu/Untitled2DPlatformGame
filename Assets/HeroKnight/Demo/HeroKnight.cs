@@ -86,7 +86,7 @@ public class HeroKnight : MonoBehaviour {
         // Move
         if (!m_rolling )
             m_body2d.velocity = new Vector2(inputX * m_speed, m_body2d.velocity.y);
-
+        print(inputX + " + " + m_body2d.velocity.x);
         //Set AirSpeed in animator
         m_animator.SetFloat("AirSpeedY", m_body2d.velocity.y);
 

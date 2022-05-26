@@ -44,7 +44,7 @@ public abstract class InputComponent : MonoBehaviour
         Trigger,
     }
 
-    public static readonly Dictionary<XboxControllerButton, KeyCode> ControllerButtonToKeyCode =
+    private static readonly Dictionary<XboxControllerButton, KeyCode> ControllerButtonToKeyCode =
         new Dictionary<XboxControllerButton, KeyCode>
         {
             {XboxControllerButton.None, KeyCode.None},
@@ -66,7 +66,7 @@ public abstract class InputComponent : MonoBehaviour
             {XboxControllerButton.Down, KeyCode.None},
         };
 
-    public static readonly Dictionary<KeyCode, XboxControllerButton> KeyCodeToControllerButton =
+    private static readonly Dictionary<KeyCode, XboxControllerButton> KeyCodeToControllerButton =
         new Dictionary<KeyCode, XboxControllerButton>
         {
             {KeyCode.None, XboxControllerButton.None},
@@ -82,7 +82,7 @@ public abstract class InputComponent : MonoBehaviour
             {KeyCode.JoystickButton9, XboxControllerButton.Rightstick},
         };
 
-    public static readonly Dictionary<XboxControllerButton, string> ControllerButtonToAxisName =
+    private static readonly Dictionary<XboxControllerButton, string> ControllerButtonToAxisName =
         new Dictionary<XboxControllerButton, string>
     {
             {XboxControllerButton.LeftTrigger, "Trigger"},
@@ -93,7 +93,7 @@ public abstract class InputComponent : MonoBehaviour
             {XboxControllerButton.Down, "DpadVertical"},
     };
 
-    public static readonly Dictionary<XboxControllerButton, bool> ControllerButtonToAxisDir =
+    private static readonly Dictionary<XboxControllerButton, bool> ControllerButtonToAxisDir =
         new Dictionary<XboxControllerButton, bool>
     {
             {XboxControllerButton.LeftTrigger, false},
@@ -104,7 +104,7 @@ public abstract class InputComponent : MonoBehaviour
             {XboxControllerButton.Down, false},
     };
 
-    public static readonly Dictionary<XboxControllerAxis, string> ControllerAxisToAxisName =
+    private static readonly Dictionary<XboxControllerAxis, string> ControllerAxisToAxisName =
         new Dictionary<XboxControllerAxis, string>
     {
             {XboxControllerAxis.None, String.Empty},
@@ -120,14 +120,23 @@ public abstract class InputComponent : MonoBehaviour
     [Serializable]
     public class InputButtonInfo
     {
-        public XboxControllerButton ControllerButton { get; private set; }
+        [SerializeField]
+        private XboxControllerButton m_ControllerButton;
+        public XboxControllerButton ControllerButton { get { return m_ControllerButton; } }
         public bool IsControllerKey { get; private set; }
         public KeyCode ControllerKeyCode { get; private set; }
         public string ControllerAxisName { get; private set; }
         public bool IsAxisPositive { get; private set; }
-        public bool IsKey { get; private set; }
-        public KeyCode KeyButton { get; private set; }
-        public int MouseButton { get; private set; }
+
+        [SerializeField]
+        private bool m_IsKey;
+        public bool IsKey { get { return m_IsKey; } }
+        [SerializeField]
+        private KeyCode m_KeyButton;
+        public KeyCode KeyButton { get { return m_KeyButton; } }
+        [SerializeField]
+        private int m_MouseButton;
+        public int MouseButton { get { return m_MouseButton; } }
 
         public InputButtonInfo(XboxControllerButton controllerButton = XboxControllerButton.None, 
             KeyCode keyButton = KeyCode.None)
@@ -149,19 +158,18 @@ public abstract class InputComponent : MonoBehaviour
 
         public void CopyFrom(InputButtonInfo copy)
         {
-            ControllerButton = copy.ControllerButton;
+            m_ControllerButton = copy.ControllerButton;
             IsControllerKey = copy.IsControllerKey;
             ControllerKeyCode = copy.ControllerKeyCode;
             ControllerAxisName = copy.ControllerAxisName;
             IsAxisPositive = copy.IsAxisPositive;
-            IsKey = copy.IsKey;
-            KeyButton = copy.KeyButton;
-            MouseButton = copy.MouseButton;
+            m_IsKey = copy.IsKey;
+            m_KeyButton = copy.KeyButton;
+            m_MouseButton = copy.MouseButton;
         }
 
-        public void ChangeControllerButton(XboxControllerButton controllerButton)
+        public void ChangeControllerButton()
         {
-            ControllerButton = controllerButton;
             ControllerKeyCode = ControllerButtonToKeyCode[ControllerButton];
 
             if (ControllerButton != XboxControllerButton.None && ControllerKeyCode == KeyCode.None)
@@ -176,10 +184,16 @@ public abstract class InputComponent : MonoBehaviour
             }
         }
 
+        public void ChangeControllerButton(XboxControllerButton controllerButton)
+        {
+            m_ControllerButton = controllerButton;
+            ChangeControllerButton();
+        }
+
         public void ChangeControllerButton(KeyCode controllerKeyCode)
         {
             ControllerKeyCode = controllerKeyCode;
-            ControllerButton = KeyCodeToControllerButton[ControllerKeyCode];
+            m_ControllerButton = KeyCodeToControllerButton[ControllerKeyCode];
             IsControllerKey = true;
         }
 
@@ -190,19 +204,19 @@ public abstract class InputComponent : MonoBehaviour
             switch (ControllerAxisName)
             {
                 case "Trigger":
-                    if (IsAxisPositive) ControllerButton = XboxControllerButton.RightTrigger;
-                    else ControllerButton = XboxControllerButton.LeftTrigger;
+                    if (IsAxisPositive) m_ControllerButton = XboxControllerButton.RightTrigger;
+                    else m_ControllerButton = XboxControllerButton.LeftTrigger;
                     break;
                 case "DpadHorizontal":
-                    if (IsAxisPositive) ControllerButton = XboxControllerButton.Right;
-                    else ControllerButton = XboxControllerButton.Left;
+                    if (IsAxisPositive) m_ControllerButton = XboxControllerButton.Right;
+                    else m_ControllerButton = XboxControllerButton.Left;
                     break;
                 case "DpadVertical":
-                    if (IsAxisPositive) ControllerButton = XboxControllerButton.Up;
-                    else ControllerButton = XboxControllerButton.Down;
+                    if (IsAxisPositive) m_ControllerButton = XboxControllerButton.Up;
+                    else m_ControllerButton = XboxControllerButton.Down;
                     break;
                 default:
-                    ControllerButton = XboxControllerButton.None;
+                    m_ControllerButton = XboxControllerButton.None;
                     break;
             }
             IsControllerKey = false;
@@ -210,14 +224,14 @@ public abstract class InputComponent : MonoBehaviour
 
         public void ChangeKeyButton(KeyCode keyButton)
         {
-            IsKey = true;
-            KeyButton = keyButton;
+            m_IsKey = true;
+            m_KeyButton = keyButton;
         }
 
         public void ChangeMouseButton(int mouseButton)
         {
-            IsKey = false;
-            MouseButton = mouseButton;
+            m_IsKey = false;
+            m_MouseButton = mouseButton;
         }
     }
 
@@ -227,7 +241,9 @@ public abstract class InputComponent : MonoBehaviour
         public InputButtonInfo buttonInfo;
         public InputButtonInfo buttonInfo_Default;
 
+        [SerializeField]
         private bool m_Enabled = true;
+        private bool m_GettingInput = true;
 
         // 仅当前一帧和此帧之间至少发生了FixedUpdate时，这用于更改按钮的状态
         private bool m_AfterFixedUpdateDown = false;
@@ -247,12 +263,14 @@ public abstract class InputComponent : MonoBehaviour
         {
             buttonInfo_Default = new InputButtonInfo(controllerButton, keyButton);
             buttonInfo = new InputButtonInfo(buttonInfo_Default);
+            currentButton = buttonInfo.ControllerButton;
         }
 
         public InputButton(XboxControllerButton controllerButton, int mouseButton)
         {
             buttonInfo_Default = new InputButtonInfo(controllerButton, mouseButton);
             buttonInfo = new InputButtonInfo(buttonInfo_Default);
+            currentButton = buttonInfo.ControllerButton;
         }
 
         public void Enable()
@@ -265,7 +283,34 @@ public abstract class InputComponent : MonoBehaviour
             m_Enabled = false;
         }
 
+        public void GainControl()
+        {
+            m_GettingInput = true;
+        }
+
+        public IEnumerator ReleaseControl(bool resetValues)
+        {
+            m_GettingInput = false;
+
+            if (!resetValues)
+                yield break;
+
+            if (Down)
+                Up = true;
+            Down = false;
+            Held = false;
+
+            m_AfterFixedUpdateDown = false;
+            m_AfterFixedUpdateHeld = false;
+            m_AfterFixedUpdateUp = false;
+
+            yield return null;
+
+            Up = false;
+        }
+
         private bool m_lastHeld = false;
+        private XboxControllerButton currentButton;
 
         public void Get(bool fixedUpdateHappened, InputType inputType)
         {
@@ -277,8 +322,16 @@ public abstract class InputComponent : MonoBehaviour
                 return;
             }
 
+            if (!m_GettingInput)
+                return;
+
             if (inputType == InputType.Controller)
             {
+                if (currentButton != buttonInfo.ControllerButton)
+                {
+                    buttonInfo.ChangeControllerButton();
+                    currentButton = buttonInfo.ControllerButton;
+                }
                 if (buttonInfo.IsControllerKey)
                 {
                     Held = Input.GetKey(buttonInfo.ControllerKeyCode);
@@ -289,11 +342,11 @@ public abstract class InputComponent : MonoBehaviour
                 {
                     if (buttonInfo.IsAxisPositive)
                     {
-                        Held = Input.GetAxisRaw(buttonInfo.ControllerAxisName) > Single.Epsilon;
+                        Held = Input.GetAxisRaw(buttonInfo.ControllerAxisName) > float.Epsilon;
                     }
                     else
                     {
-                        Held = Input.GetAxisRaw(buttonInfo.ControllerAxisName) < -Single.Epsilon;
+                        Held = Input.GetAxisRaw(buttonInfo.ControllerAxisName) < -float.Epsilon;
                     }
                     Down = !m_lastHeld && Held;
                     Up = m_lastHeld && !Held;
@@ -365,9 +418,9 @@ public abstract class InputComponent : MonoBehaviour
             }
             foreach (var axis in axisList)
             {
-                if (Mathf.Abs(Input.GetAxisRaw(axis)) > Single.Epsilon)
+                if (Mathf.Abs(Input.GetAxisRaw(axis)) > float.Epsilon)
                 {
-                    buttonInfo.ChangeControllerButton(axis, Input.GetAxisRaw(axis) > Single.Epsilon);
+                    buttonInfo.ChangeControllerButton(axis, Input.GetAxisRaw(axis) > float.Epsilon);
                     getButton = true;
                     break;
                 }
@@ -420,7 +473,9 @@ public abstract class InputComponent : MonoBehaviour
     public class InputAxisInfo
     {
         public XboxControllerAxis ControllerAxis { get; private set; }
+        [HideInInspector]
         public string ControllerAxisName { get; private set; }
+
         public KeyCode Positive { get; private set; }
         public KeyCode Negative { get; private set; }
 
@@ -445,16 +500,20 @@ public abstract class InputComponent : MonoBehaviour
             Negative = copy.Negative;
         }
 
+        public void ChangeControllerAxis()
+        {
+            ControllerAxisName = ControllerAxisToAxisName[ControllerAxis];
+        }
+        public void ChangeControllerAxis(XboxControllerAxis controllerAxis)
+        {
+            ControllerAxis = controllerAxis;
+            ChangeControllerAxis();
+        }
+
         public void ChangeKeyAxis(KeyCode key, bool isPositive)
         {
             if (isPositive) Positive = key;
             else Negative = key;
-        }
-
-        public void ChangeControllerAxis(XboxControllerAxis controllerAxis)
-        {
-            ControllerAxis = controllerAxis;
-            ControllerAxisName = ControllerAxisToAxisName[ControllerAxis];
         }
     }
 
@@ -464,15 +523,22 @@ public abstract class InputComponent : MonoBehaviour
         public InputAxisInfo axisInfo;
         public InputAxisInfo axisInfo_Alternate;
 
-        private bool m_Enabled = true;
+        [SerializeField]
         private bool m_HasAlternate = false;
+        [SerializeField]
+        private bool m_Enabled = true;
+        private bool m_GettingInput = true;
 
         public float Value { get; private set; }
-        public bool ReceivingInput { get; private set; }
+        public bool HasAlternate
+        {
+            get { return m_HasAlternate; }
+        }
         public bool Enabled
         {
             get { return m_Enabled; }
         }
+        public bool ReceivingInput { get; private set; }
 
         public InputAxis(XboxControllerAxis controllerAxis = XboxControllerAxis.None, 
             KeyCode positive = KeyCode.None, KeyCode negative = KeyCode.None, 
@@ -481,6 +547,8 @@ public abstract class InputComponent : MonoBehaviour
             axisInfo = new InputAxisInfo(controllerAxis, positive, negative);
             axisInfo_Alternate = new InputAxisInfo(controllerAxis_Alternate);
             m_HasAlternate = controllerAxis_Alternate != XboxControllerAxis.None;
+            currentAxis = axisInfo.ControllerAxis;
+            currentAxis_Alternate = axisInfo_Alternate.ControllerAxis;
         }
 
         public void Enable()
@@ -493,6 +561,23 @@ public abstract class InputComponent : MonoBehaviour
             m_Enabled = false;
         }
 
+        public void GainControl()
+        {
+            m_GettingInput = true;
+        }
+
+        public void ReleaseControl(bool resetValues)
+        {
+            m_GettingInput = false;
+            if (resetValues)
+            {
+                Value = 0f;
+                ReceivingInput = false;
+            }
+        }
+
+        private XboxControllerAxis currentAxis;
+        private XboxControllerAxis currentAxis_Alternate;
         public void Get(InputType inputType)
         {
             if (!m_Enabled)
@@ -501,20 +586,33 @@ public abstract class InputComponent : MonoBehaviour
                 return;
             }
 
+            if (!m_GettingInput)
+                return;
+
             bool positiveHeld = false;
             bool negativeHeld = false;
 
             if (inputType == InputType.Controller)
             {
+                if (currentAxis != axisInfo.ControllerAxis)
+                {
+                    axisInfo.ChangeControllerAxis();
+                    currentAxis = axisInfo.ControllerAxis;
+                }
                 float value = Input.GetAxisRaw(axisInfo.ControllerAxisName);
                 
-                positiveHeld = value > Single.Epsilon;
-                negativeHeld = value < -Single.Epsilon;
+                positiveHeld = value > float.Epsilon;
+                negativeHeld = value < -float.Epsilon;
                 if (m_HasAlternate)
                 {
+                    if (currentAxis_Alternate != axisInfo_Alternate.ControllerAxis)
+                    {
+                        axisInfo_Alternate.ChangeControllerAxis();
+                        currentAxis_Alternate = axisInfo_Alternate.ControllerAxis;
+                    }
                     float value_Alternate = Input.GetAxisRaw(axisInfo_Alternate.ControllerAxisName);
-                    positiveHeld |= value_Alternate > Single.Epsilon;
-                    negativeHeld |= value_Alternate < -Single.Epsilon;
+                    positiveHeld |= value_Alternate > float.Epsilon;
+                    negativeHeld |= value_Alternate < -float.Epsilon;
                 }
             }
             else if (inputType == InputType.MouseAndKeyboard)
@@ -578,4 +676,24 @@ public abstract class InputComponent : MonoBehaviour
     }
 
     protected abstract void GetInputs(bool fixedUpdateHappened);
+
+    protected void GainControl(InputButton inputButton)
+    {
+        inputButton.GainControl();
+    }
+
+    protected void GainControl(InputAxis inputAxis)
+    {
+        inputAxis.GainControl();
+    }
+
+    protected void ReleaseControl(InputButton inputButton, bool resetValues)
+    {
+        StartCoroutine(inputButton.ReleaseControl(resetValues));
+    }
+
+    protected void ReleaseControl(InputAxis inputAxis, bool resetValues)
+    {
+        inputAxis.ReleaseControl(resetValues);
+    }
 }
